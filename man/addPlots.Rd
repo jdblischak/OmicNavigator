@@ -15,7 +15,7 @@ corresponds to the name(s) of the function(s) defined in the current R
 session. The third list provides metadata to describe each plot. The only
 required metadata element is \code{displayName}, which controls how the
 plot will be named in the app. You are encouraged to also specify the
-\code{plotType}, e.g. \code{"singleFeature"}, \code{"multiFeature"}. If you
+\code{plotType}, e.g. \code{"singleFeature"}, \code{"multiFeature"}, \code{"multiModel"}. If you
 do not specify the \code{plotType}, the plot will be assumed to be
 \code{"singleFeature"}. Optionally, if the plotting function requires
 external packages, these can be defined in the element \code{packages}. To

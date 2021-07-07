@@ -30,6 +30,7 @@ plotStudy <- function(study, modelID, featureID, plotID, libraries = NULL) {
 
   # Throw error is mismatch between number of features and plot type
   nFeatures <- length(featureID)
+  nModels <- length(modelID)
   plotType <- p[["plotType"]]
   if (isEmpty(plotType)) plotType <- "singleFeature"
   if (plotType == "singleFeature" && nFeatures != 1) {
@@ -42,6 +43,12 @@ plotStudy <- function(study, modelID, featureID, plotID, libraries = NULL) {
     stop(
       "Plot type \"multiFeature\" requires at least 2 featureIDs\n",
       sprintf("Received %d featureID(s)", nFeatures)
+    )
+  }
+  if (plotType == "multiModel" && nModels < 2) {
+    stop(
+      "Plot type \"multiModel\" requires at least 2 modelsIDs\n",
+      sprintf("Received %d modelID(s)", nFeatures)
     )
   }
 
@@ -144,48 +151,55 @@ getPlottingData <- function(study, modelID, featureID, libraries = NULL) {
   # Deduplicate the featureIDs
   featureID <- unique(featureID)
 
-  assays <- getAssays(study, modelID = modelID, quiet = TRUE,
-                      libraries = libraries)
-  if (isEmpty(assays)) {
-    stop(sprintf("No assays available for modelID \"%s\"\n", modelID),
-         "Add assays data with addAssays()")
-  }
-  featureIDAvailable <- featureID %in% rownames(assays)
-  if (any(!featureIDAvailable)) {
-    stop(sprintf("The feature \"%s\" is not available for modelID \"%s\"",
-                 featureID[!featureIDAvailable][1], modelID))
-  }
-  assaysPlotting <- assays[featureID, , drop = FALSE]
+  plottingData <- vector("list", length(modelID))
 
-  samples <- getSamples(study, modelID = modelID, quiet = TRUE,
+  for (i in seq_along(modelID)) {
+
+    assays <- getAssays(study, modelID = modelID, quiet = TRUE,
                         libraries = libraries)
-  if (isEmpty(samples)) {
-    samplesPlotting <- samples
-  } else {
-    samplesPlotting <- samples[match(colnames(assaysPlotting), samples[[1]], nomatch = 0), ,
-                               drop = FALSE]
-    if (!identical(samplesPlotting[[1]], colnames(assaysPlotting))) {
-      warning("Not all of the sampleIDs have metadata")
+    if (isEmpty(assays)) {
+      stop(sprintf("No assays available for modelID \"%s\"\n", modelID),
+           "Add assays data with addAssays()")
     }
-    row.names(samplesPlotting) <- NULL # reset row numbers after filtering
-  }
+    featureIDAvailable <- featureID %in% rownames(assays)
+    if (any(!featureIDAvailable)) {
+      stop(sprintf("The feature \"%s\" is not available for modelID \"%s\"",
+                   featureID[!featureIDAvailable][1], modelID))
+    }
+    assaysPlotting <- assays[featureID, , drop = FALSE]
 
-  features <- getFeatures(study, modelID = modelID, quiet = TRUE,
+    samples <- getSamples(study, modelID = modelID, quiet = TRUE,
                           libraries = libraries)
-  if (isEmpty(features)) {
-    featuresPlotting <- features
-  } else {
-    featuresPlotting <- features[match(featureID, features[[1]], nomatch = 0), , drop = FALSE]
-    if (!identical(featuresPlotting[[1]], featureID)) {
-      warning("Not all of the featureIDs have metadata")
+    if (isEmpty(samples)) {
+      samplesPlotting <- samples
+    } else {
+      samplesPlotting <- samples[match(colnames(assaysPlotting), samples[[1]], nomatch = 0), ,
+                                 drop = FALSE]
+      if (!identical(samplesPlotting[[1]], colnames(assaysPlotting))) {
+        warning("Not all of the sampleIDs have metadata")
+      }
+      row.names(samplesPlotting) <- NULL # reset row numbers after filtering
     }
-    row.names(featuresPlotting) <- NULL # reset row numbers after filtering
+
+    features <- getFeatures(study, modelID = modelID, quiet = TRUE,
+                            libraries = libraries)
+    if (isEmpty(features)) {
+      featuresPlotting <- features
+    } else {
+      featuresPlotting <- features[match(featureID, features[[1]], nomatch = 0), , drop = FALSE]
+      if (!identical(featuresPlotting[[1]], featureID)) {
+        warning("Not all of the featureIDs have metadata")
+      }
+      row.names(featuresPlotting) <- NULL # reset row numbers after filtering
+    }
+    plottingData[[i]] <- list(
+      assays = assaysPlotting,
+      samples = samplesPlotting,
+      features = featuresPlotting
+    )
   }
 
-  plottingData <- list(
-    assays = assaysPlotting,
-    samples = samplesPlotting,
-    features = featuresPlotting
-  )
+  if (length(modelID) == 1) plottingData <- plottingData[[1]]
+
   return(plottingData)
 }
