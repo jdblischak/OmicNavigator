@@ -104,6 +104,12 @@ jobs:
         if: runner.os == 'Windows'
         run: choco install ghostscript --no-progress
 
+      - name: Start interactive debugging session
+        if: runner.os == 'Windows'
+        uses: mxschmitt/action-tmate@v3
+        with:
+          limit-access-to-actor: true
+
       - name: Install dependencies
         run: |
           remotes::install_deps(dependencies = TRUE)
