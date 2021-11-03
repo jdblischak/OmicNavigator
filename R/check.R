@@ -402,6 +402,30 @@ checkPlots <- function(plots) {
   return(NULL)
 }
 
+checkMapping <- function(mapping) {
+  checkList(mapping)
+
+  mappingdf <- as.data.frame(mapping)
+
+  stopifnot(vapply(mappingdf, is.character, logical(1)))
+
+  # check if any given model has at least one feature aligned with another model
+  for (i in seq_along(mappingdf)) {
+    tempModel   <- mappingdf[!is.na(mappingdf[[i]]),]
+    if (nrow(tempModel) > 1) {
+      featAligned <- any(apply(!sapply(tempModel, is.na), 1, sum) > 1)
+    } else {
+      featAligned <- any(sum(!sapply(tempModel, is.na)) > 1)
+    }
+
+    if (isFALSE(featAligned)) {
+      stop(sprintf("Model \"%s\" does not present any feature mapping to another model.", colnames(mappingdf)[[i]]))
+    }
+  }
+
+  return(NULL)
+}
+
 checkBarcodes <- function(barcodes) {
   checkList(barcodes)
 
