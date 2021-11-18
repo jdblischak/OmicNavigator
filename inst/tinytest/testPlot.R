@@ -45,6 +45,10 @@ expect_identical_xl(
 
 pkgsAttachedPre <- search()
 parSettingsPre <- graphics::par(no.readonly = TRUE)
+#plotly
+expect_error_xl(
+  plotStudy(testStudyObj, modelID = "model_03", featureID = "feature_0001", plotID = "plotPlotly")
+)
 
 expect_silent_xl(
   plotStudy(testStudyObj, modelID = "model_01", featureID = "feature_0001", plotID = "plotBase")
@@ -68,6 +72,10 @@ expect_error_xl(
 
 expect_silent_xl(
   plotStudy(testStudyObj, modelID = "model_03", featureID = "feature_0001", plotID = "plotGg")
+)
+#plotly
+expect_error_xl(
+  plotStudy(testStudyObj, modelID = "model_03", featureID = "feature_0001", plotID = "plotPlotly")
 )
 
 expect_error_xl(
@@ -109,6 +117,10 @@ expect_error_xl(
 
 expect_silent_xl(
   plotStudy(testStudyName, modelID = "model_03", featureID = "feature_0001", plotID = "plotGg")
+)
+#plotly
+expect_error_xl(
+  plotStudy(testStudyObj, modelID = "model_03", featureID = "feature_0001", plotID = "plotPlotly")
 )
 
 expect_error_xl(

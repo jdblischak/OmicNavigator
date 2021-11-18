@@ -34,6 +34,7 @@ plotStudy <- function(study, modelID, featureID, plotID, testID = NULL, librarie
          "Plots available:\n",
          sprintf("* \"%s\"\n", plotsAvailable))
   }
+  ##not sure what inherits does or getPlotFunction ***************************
   p <- plots[[plotID]]
   if (inherits(study, "onStudy")) {
     f <- getPlotFunction(plotID)
@@ -49,6 +50,8 @@ plotStudy <- function(study, modelID, featureID, plotID, testID = NULL, librarie
   if (isEmpty(plotType)) plotType <- "singleFeature"
   if (length(plotType) == 1 && plotType == "multiTest") plotType <- c("singleFeature", "multiTest")
   nPlotType <- length(plotType)
+  #dynamic check
+  dynamic <- F
 
   for (ind in 1:nPlotType) {
     if (plotType[ind] == "singleFeature") {
@@ -83,6 +86,10 @@ plotStudy <- function(study, modelID, featureID, plotID, testID = NULL, librarie
         sprintf("Received %d testID(s)", nTests)
       )
     }
+    pt <- plotType[ind]
+    if(plotType[ind] == "plotly"){
+      dynamic <- TRUE
+    }
   }
 
   plottingData <- getPlottingData(study, modelID, featureID, testID = testID,
@@ -107,7 +114,14 @@ plotStudy <- function(study, modelID, featureID, plotID, testID = NULL, librarie
   }
 
   returned <- f(plottingData)
+  ## unsure what this is doing
   if (inherits(returned, "ggplot")) print(returned)
+  ## assumptuion: create new metafield called static which stores T/F if plot will
+  ## be static or dynamic.
+  if (dynamic){
+    returned <- plotly::plotly_json(returned)
+  }
+
 
   return(invisible(study))
 }

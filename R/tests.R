@@ -275,6 +275,7 @@ testPlots <- function() {
     graphics::plot(df$value.x ~ df$value.y, col = factor(df$variable))
   }
   assign("plotMultiTestSf", plotMultiTestSf, envir = parent.frame())
+
   plotMultiTestMf <- function(x) {
     var_x <- data.frame(lapply(x$results, `[`, 2))
     colnames(var_x)<- names(x$results)
@@ -292,6 +293,16 @@ testPlots <- function() {
   }
   assign("plotMultiTestMf", plotMultiTestMf, envir = parent.frame())
 
+  plotPlotly <- function(x){
+    plotPoints <- as.numeric(x[["assays"]][1, ])
+    featureMedian <- stats::median(plotPoints)
+    plotTitle <- sprintf("%s, median: %0.2f", x[["features"]][["customID"]],
+                         featureMedian)
+    p <- ggplot2::qplot(seq_along(plotPoints), plotPoints, main = plotTitle,
+                        xlab = "Samples", ylab = "Expression level")
+    plotly::ggplotly(p)
+  }
+  assign("plotPlotly", plotPlotly, envir = parent.frame())
   plots <- list(
     default = list(
       plotBase = list(
@@ -320,6 +331,11 @@ testPlots <- function() {
         displayName = "Custom ggplot2 plot",
         plotType = "singleFeature",
         packages = c("ggplot2", "stats")
+      ),
+      plotPlotly = list(
+        displayName = "Custom plotly plot",
+        plotType = c("singleFeature", "plotly"),
+        packages = c("plotly", "ggplot2", "stats")
       )
     )
   )
