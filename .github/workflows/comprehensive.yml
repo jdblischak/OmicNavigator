@@ -121,6 +121,12 @@ jobs:
         if: ${{ matrix.config.r == '3.4.4' }}
         run: rm README.md
 
+      - name: Start interactive debugging session
+        if: runner.os == 'Linux'
+        uses: mxschmitt/action-tmate@v3
+        with:
+          limit-access-to-actor: true
+
       - name: Check
         env:
           _R_CHECK_CRAN_INCOMING_REMOTE_: false
