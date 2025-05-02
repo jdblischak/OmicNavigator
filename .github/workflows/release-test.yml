@@ -1,0 +1,56 @@
+name: Test release workflow
+on:
+  push:
+  workflow_dispatch:
+jobs:
+  release:
+    runs-on: ubuntu-22.04
+    steps:
+    - name: Extract package version from tag reference
+      run: echo "version=0.0.0" >> $GITHUB_ENV
+    - uses: actions/checkout@v4
+    - name: Setup r2u
+      run: sudo bash scripts/setup-r2u.sh
+    - name: Install R packages
+      run: sudo bash scripts/install-dependencies-r2u.sh
+    - name: Create diagrams for vignettes
+      run: make diagrams
+    - name: Install TinyTeX
+      uses: r-lib/actions/setup-tinytex@v2
+      env:
+        # install full prebuilt version
+        TINYTEX_INSTALLER: TinyTeX
+    - name: Download app
+      run: |
+        devtools::load_all()
+        installApp()
+      shell: Rscript {0}
+    - name: Build
+      run: R CMD build .
+    - name: Install
+      run: sudo R CMD INSTALL --no-multiarch --with-keep.source OmicNavigator_*.tar.gz
+      shell: sudo bash {0}
+    - name: Session information
+      run: |
+        library("OmicNavigator")
+        sessionInfo()
+      shell: Rscript {0}
+    - name: Build User's Guide vignette
+      run: |
+        setwd("vignettes")
+        utils::Sweave("OmicNavigatorUsersGuide.Rnw")
+        tools::texi2pdf("OmicNavigatorUsersGuide.tex")
+        file.copy("OmicNavigatorUsersGuide.pdf", "../OmicNavigatorUsersGuide_${{ env.version }}.pdf")
+      shell: Rscript {0}
+    - name: Build API vignette
+      run: |
+        setwd("vignettes")
+        utils::Sweave("OmicNavigatorAPI.Rnw")
+        tools::texi2pdf("OmicNavigatorAPI.tex")
+        file.copy("OmicNavigatorAPI.pdf", "../OmicNavigatorAPI_${{ env.version }}.pdf")
+      shell: Rscript {0}
+    - name: Release notes
+      run: |
+        releaseNotes <- utils::news(query = Version=="${{ env.version }}", package = "OmicNavigator")
+        writeLines(releaseNotes[["HTML"]], con = "RELEASE-NOTES.html")
+      shell: Rscript {0}
